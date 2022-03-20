@@ -8,6 +8,8 @@ Python and the playsound module must be installed. You can install python at htt
 
 Once python is installed, use `pip install playsound` to install the playsound module.
 
+For now this package isn't on pypi so you can download this repository and use `pip install .` in the directory where you extract it.
+
 Tkinter will make adding songs to your library easier. If you kept the checkbox checked when installing python, it should already be on your system. On linux you may have to use `sudo apt-get install python3-tk`.
 
 
