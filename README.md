@@ -15,12 +15,18 @@ Tkinter will make adding songs to your library easier. If you kept the checkbox 
 
 ## Usage
 
-### Adding songs
+### Create a playlist
 
-The following will prompt you to select audio files to add.
+```
+acmplay -c myplaylist
+```
 
-```sh
-acmplay -a
+### Edit a playlist
+
+This will bring you into a custom interface for editing a playlist. It includes adding to, reordering, and removing from the playlist specified.
+
+```
+acmplay -e myplaylist
 ```
 
 Then you'll be prompted as to whether the selected files should go into a playlist
@@ -28,7 +34,19 @@ Then you'll be prompted as to whether the selected files should go into a playli
 ### Playing songs
 
 ```sh
-acmplay -s -l myfavs # shuffle play a playlist you've created
+acmplay -s -l myplaylist # shuffle play a playlist you've created
 acmplay -d ../NewAlbum # play all audio files in a directory
 acmplay -f workinprogress.mp3 # play an audio file
+```
+
+### List your playlists
+
+```
+acmplay -l
+```
+
+### Remove a playlist
+
+```
+acmplay -r myplaylist
 ```
