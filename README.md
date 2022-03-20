@@ -28,7 +28,7 @@ Then you'll be prompted as to whether the selected files should go into a playli
 ### Playing songs
 
 ```sh
-acmplay -s -l myplaylist # shuffle play a playlist you've created
-acmplay -d newalbum # play all audio files in a directory
+acmplay -s -l myfavs # shuffle play a playlist you've created
+acmplay -d ../NewAlbum # play all audio files in a directory
 acmplay -f workinprogress.mp3 # play an audio file
 ```
