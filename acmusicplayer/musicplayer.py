@@ -35,6 +35,19 @@ def add_one_filename(playlist, in_filename):
             f.write(f"{old_content}\n{in_filename}")
 
 
+def remove_playlist(playlist):
+    playlist_filename = f"{playlist}.playlist"
+    if playlist_filename in os.listdir(APP_DIRECTORY):
+        confirmation = input(f"Are you sure you want to remove playlist \"{playlist}\"?\nThis action cannot be undone. (Y/n) ")
+        if confirmation == "Y":
+            os.remove(os.path.join(APP_DIRECTORY, playlist_filename))
+            print(f"Removed \"{playlist}\"")
+        else:
+            print(f"No action taken")
+    else:
+        print(f"No playlist named \"{playlist}\"\nList all playlists with `acmplay -l`")
+
+
 def add_music(filedialog=None, tk=None):
     if filedialog:
         tk().withdraw()
@@ -108,6 +121,7 @@ def main():
     parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
     parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
+    parser.add_argument("-r", "--remove", type=str, help="remove a playlist")
     args = parser.parse_args()
 
     try:
@@ -124,6 +138,8 @@ def main():
             add_music()
     elif args.library:
         list_music()
+    elif args.remove:
+        remove_playlist(args.remove)
     else:
         if not os.path.isdir(APP_DIRECTORY):
             try:
