@@ -125,10 +125,8 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
         "show": show
     }
 
-
     def rtfm():
         print("enter \"help\" for usage info")
-
 
     show()
 

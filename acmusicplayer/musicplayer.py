@@ -15,19 +15,6 @@ from .editplaylist import edit_playlist
 APP_DIRECTORY = os.path.join(Path.home(), ".acmusicplayer")
 
 
-def add_one_filename(playlist, in_filename):
-    playlist_filepath = os.path.join(APP_DIRECTORY, f"{playlist}.playlist")
-    if not os.path.isfile(playlist_filepath):
-        with open(playlist_filepath, "w") as f:
-            f.write(in_filename)
-    else:
-        with open(playlist_filepath, "r") as f:
-            old_content = f.read()
-        
-        with open(playlist_filepath, "w") as f:
-            f.write(f"{old_content}\n{in_filename}")
-
-
 def create_playlist(name):
     filename = f"{name}.playlist"
     if filename not in os.listdir(APP_DIRECTORY):
@@ -37,7 +24,7 @@ def create_playlist(name):
         print(f"Playlist \"{name}\" already exists")
 
 
-def list_music():
+def show_playlists():
     for item in os.listdir(APP_DIRECTORY):
         print(item.rsplit(".", 1)[0])
         with open(os.path.join(APP_DIRECTORY, item), "r") as f:
@@ -59,27 +46,6 @@ def remove_playlist(playlist):
     else:
         print(f"No playlist named \"{playlist}\"\nList all playlists with `acmplay -l`")
 
-
-def add_music(filedialog=None, tk=None):
-    if filedialog:
-        tk().withdraw()
-        filenames = filedialog.askopenfilenames()
-        if len(filenames) < 1: return
-
-        in_playlist = input("Playlist (if it does not exist a new one will be created): ")
-        for name in filenames:
-            add_one_filename(in_playlist, name)
-    else:
-        # add it through the command line
-        in_filename = input("Enter the path to a file you'd like to add: ")
-        if not os.path.isfile(in_filename):
-            print(f"Could not find file \"{in_filename}\"")
-            return
-        in_filename = str(Path.absolute(Path(in_filename))).replace("\\", "/")
-
-        in_playlist = input("Playlist (if it does not exist a new one will be created): ")
-        
-        add_one_filename(in_playlist, in_filename)
 
 def play_playlist(playlist_name, shuffle=False):
     fname = f"{playlist_name.lower()}.playlist"
@@ -113,6 +79,7 @@ def play_items(list, list_name):
     for item in list:
         play_file(item, origin=list_name)
 
+
 def play_file(filepath, origin=None):
     try:
         print(f"Now playing \"{os.path.basename(filepath)}\"", f" from \"{origin}\"" if origin else "", "...", sep="")
@@ -123,6 +90,7 @@ def play_file(filepath, origin=None):
             exit(0)
         
         print(f"Error: {filepath} was not playable.")
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -152,7 +120,7 @@ def main():
     if args.create:
         create_playlist(args.create)
     elif args.library:
-        list_music()
+        show_playlists()
     elif args.edit:
         if use_gui:
             edit_playlist(args.edit, APP_DIRECTORY, use_gui=use_gui, filedialog=filedialog, tk=Tk)
