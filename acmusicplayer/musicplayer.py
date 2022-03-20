@@ -81,7 +81,7 @@ def play_directory(dirpath, shuffle=False):
     if shuffle:
         random.shuffle(paths)
 
-    play_items(paths, Path.parent(dirpath).rsplit("/", 1)[1])
+    play_items(paths, os.path.basename(str(Path(dirpath).resolve().parent)))
 
 
 def play_items(list, list_name):
@@ -90,7 +90,7 @@ def play_items(list, list_name):
 
 def play_file(filepath, origin=None):
     try:
-        print(f"Now playing \"{filepath.rsplit('/', 1)[1]}\"", f" from \"{origin}\"" if origin else "", "...", sep="")
+        print(f"Now playing \"{os.path.basename(filepath)}\"", f" from \"{origin}\"" if origin else "", "...", sep="")
         playsound.playsound(filepath)
     except Exception as e:
         if type(e) == KeyboardInterrupt:
@@ -107,15 +107,14 @@ def main():
     parser.add_argument("-f", "--file", type=str, help="treat the name as a path to an audio file")
     parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
+    parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
+    args = parser.parse_args()
 
-    use_gui = False
     try:
         from tkinter import filedialog, Tk
         use_gui = True
-        parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
     except:
-        parser.add_argument("-a", "--add", type=str, help="add the specified file to your library")
-    args = parser.parse_args()
+        use_gui = False
 
     if args.add:
         # do stuff
