@@ -94,7 +94,7 @@ def play_file(filepath, origin=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-p", "--play", metavar="PLAYLIST_NAME_OR_PATH", type=str, help="play the specified playlist, or a file or folder at the specified path")
+    parser.add_argument("-p", "--play", metavar="PLAYLIST", type=str, help="play the specified playlist, or a file or folder at the specified path")
     parser.add_argument("-i", "--inpath", type=str, help="path to an audio file or folder of audio files to be played")
     parser.add_argument("-c", "--create", metavar="PLAYLIST", type=str, help="create a new playlist with the given name")
     parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
