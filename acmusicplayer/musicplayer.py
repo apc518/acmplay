@@ -115,9 +115,8 @@ def play_file(filepath, origin=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
-    parser.add_argument("-p", "--playlist", type=str, help="search for the name as a playlist")
-    parser.add_argument("-d", "--directory", type=str, help="treat the name as a path to a directory (which must contain audio files)")
-    parser.add_argument("-f", "--file", type=str, help="treat the name as a path to an audio file")
+    parser.add_argument("-p", "--playlist", type=str, help="name of the playlist to be played")
+    parser.add_argument("-i", "--inpath", type=str, help="path to an audio file or folder of audio files to be played")
     parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
     parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
@@ -153,10 +152,11 @@ def main():
         
         if args.playlist:
             play_playlist(args.playlist, shuffle=args.shuffle)
-        elif args.directory:
-            play_directory(args.directory, shuffle=args.shuffle)
-        elif args.file:
-            play_file(args.file)
+        elif args.inpath:
+            if os.path.isdir(args.inpath):
+                play_directory(args.inpath, shuffle=args.shuffle)
+            else:
+                play_file(args.inpath)
         else:
             print("No arguments given. Use `acmplayer -h` to see options.")
 
