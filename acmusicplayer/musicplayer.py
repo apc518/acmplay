@@ -35,6 +35,16 @@ def add_one_filename(playlist, in_filename):
             f.write(f"{old_content}\n{in_filename}")
 
 
+def create_playlist(name):
+    filename = f"{name}.playlist"
+    if filename not in os.listdir(APP_DIRECTORY):
+        open(os.path.join(APP_DIRECTORY, filename), "w")
+        print(f"New playlist \"{name}\" successfully created")
+    else:
+        print(f"Playlist \"{name}\" already exists")
+
+
+
 def remove_playlist(playlist):
     playlist_filename = f"{playlist}.playlist"
     if playlist_filename in os.listdir(APP_DIRECTORY):
@@ -114,9 +124,10 @@ def play_file(filepath, origin=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
     parser.add_argument("-p", "--playlist", type=str, help="name of the playlist to be played")
     parser.add_argument("-i", "--inpath", type=str, help="path to an audio file or folder of audio files to be played")
+    parser.add_argument("-c", "--create", type=str, help="create a new playlist with the given name")
+    parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
     parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
     parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
@@ -139,6 +150,8 @@ def main():
         list_music()
     elif args.remove:
         remove_playlist(args.remove)
+    elif args.create:
+        create_playlist(args.create)
     else:
         if not os.path.isdir(APP_DIRECTORY):
             try:
