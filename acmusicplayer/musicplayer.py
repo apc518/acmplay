@@ -6,20 +6,13 @@ import os
 import argparse
 import random
 from pathlib import Path
+from tkinter import filedialog
 
 import playsound
 
+from .editplaylist import edit_playlist
+
 APP_DIRECTORY = os.path.join(Path.home(), ".acmusicplayer")
-
-
-def list_music():
-    for item in os.listdir(APP_DIRECTORY):
-        print(item.rsplit(".", 1)[0])
-        with open(os.path.join(APP_DIRECTORY, item), "r") as f:
-            lines = f.read().splitlines()
-            f.close()
-        for audio_file in lines:
-            print("\t", os.path.split(audio_file)[1], sep="")
 
 
 def add_one_filename(playlist, in_filename):
@@ -43,6 +36,15 @@ def create_playlist(name):
     else:
         print(f"Playlist \"{name}\" already exists")
 
+
+def list_music():
+    for item in os.listdir(APP_DIRECTORY):
+        print(item.rsplit(".", 1)[0])
+        with open(os.path.join(APP_DIRECTORY, item), "r") as f:
+            lines = f.read().splitlines()
+            f.close()
+        for audio_file in lines:
+            print("\t", os.path.split(audio_file)[1], sep="")
 
 
 def remove_playlist(playlist):
@@ -91,7 +93,7 @@ def play_playlist(playlist_name, shuffle=False):
         
         play_items(lines, playlist_name)
     else:
-        print(f"No such playlist \"{playlist_name}\"")
+        print(f"Playlist \"{playlist_name}\" not found.")
 
 
 def play_directory(dirpath, shuffle=False):
@@ -124,47 +126,46 @@ def play_file(filepath, origin=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-p", "--playlist", type=str, help="name of the playlist to be played")
+    parser.add_argument("-p", "--play", metavar="PLAYLIST_NAME_OR_PATH", type=str, help="play the specified playlist, or a file or folder at the specified path")
     parser.add_argument("-i", "--inpath", type=str, help="path to an audio file or folder of audio files to be played")
-    parser.add_argument("-c", "--create", type=str, help="create a new playlist with the given name")
+    parser.add_argument("-c", "--create", metavar="PLAYLIST", type=str, help="create a new playlist with the given name")
     parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
-    parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
+    parser.add_argument("-e", "--edit", metavar="PLAYLIST", type=str, help="edit a playlist")
+    parser.add_argument("-r", "--remove", metavar="PLAYLIST", type=str, help="remove a playlist")
+    parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle playback if there are multiple tracks")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
-    parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
-    parser.add_argument("-r", "--remove", type=str, help="remove a playlist")
     args = parser.parse_args()
 
     try:
         from tkinter import filedialog, Tk
-        use_gui = True
+        use_gui = True and not args.nogui
     except:
         use_gui = False
 
-    if args.add:
-        # do stuff
-        if use_gui and not args.nogui:
-            add_music(filedialog=filedialog, tk=Tk)
-        else:
-            add_music()
+    if not os.path.isdir(APP_DIRECTORY):
+        try:
+            os.mkdir(APP_DIRECTORY)
+        except:
+            print("Could not make application directory.")
+            exit(1)
+
+    if args.create:
+        create_playlist(args.create)
     elif args.library:
         list_music()
+    elif args.edit:
+        if use_gui:
+            edit_playlist(args.edit, APP_DIRECTORY, use_gui=use_gui, filedialog=filedialog, tk=Tk)
+        else:
+            edit_playlist(args.edit, APP_DIRECTORY)
     elif args.remove:
         remove_playlist(args.remove)
-    elif args.create:
-        create_playlist(args.create)
     else:
-        if not os.path.isdir(APP_DIRECTORY):
-            try:
-                os.mkdir(APP_DIRECTORY)
-            except:
-                print("Could not make application directory.")
-                exit(1)
-
         if args.shuffle:
             print("shuffle play enabled")
         
-        if args.playlist:
-            play_playlist(args.playlist, shuffle=args.shuffle)
+        if args.play:
+            play_playlist(args.play, shuffle=args.shuffle)
         elif args.inpath:
             if os.path.isdir(args.inpath):
                 play_directory(args.inpath, shuffle=args.shuffle)
