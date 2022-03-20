@@ -1,0 +1,150 @@
+"""
+acmusicplayer by Andy Chamberlain
+"""
+
+import os
+import argparse
+import random
+from pathlib import Path
+
+import playsound
+
+APP_DIRECTORY = os.path.join(Path.home(), ".acmusicplayer")
+
+
+def list_music():
+    for item in os.listdir(APP_DIRECTORY):
+        print(item.rsplit(".", 1)[0])
+        with open(os.path.join(APP_DIRECTORY, item), "r") as f:
+            lines = f.read().splitlines()
+            f.close()
+        for audio_file in lines:
+            print("\t", os.path.split(audio_file)[1], sep="")
+
+
+def add_one_filename(playlist, in_filename):
+    playlist_filepath = os.path.join(APP_DIRECTORY, f"{playlist}.playlist")
+    if not os.path.isfile(playlist_filepath):
+        with open(playlist_filepath, "w") as f:
+            f.write(in_filename)
+    else:
+        with open(playlist_filepath, "r") as f:
+            old_content = f.read()
+        
+        with open(playlist_filepath, "w") as f:
+            f.write(f"{old_content}\n{in_filename}")
+
+
+def add_music(filedialog=None, tk=None):
+    if filedialog:
+        tk().withdraw()
+        filenames = filedialog.askopenfilenames()
+        if len(filenames) < 1: return
+
+        in_playlist = input("Playlist (if it does not exist a new one will be created): ")
+        for name in filenames:
+            add_one_filename(in_playlist, name)
+    else:
+        # add it through the command line
+        in_filename = input("Enter the path to a file you'd like to add: ")
+        if not os.path.isfile(in_filename):
+            print(f"Could not find file \"{in_filename}\"")
+            return
+        in_filename = str(Path.absolute(Path(in_filename))).replace("\\", "/")
+
+        in_playlist = input("Playlist (if it does not exist a new one will be created): ")
+        
+        add_one_filename(in_playlist, in_filename)
+
+def play_playlist(playlist_name, shuffle=False):
+    fname = f"{playlist_name.lower()}.playlist"
+    if fname in os.listdir(APP_DIRECTORY):
+        with open(os.path.join(APP_DIRECTORY, fname), "r") as f:
+            lines = f.read().splitlines()
+            f.close()
+        
+        if shuffle:
+            random.shuffle(lines)
+        
+        play_items(lines, playlist_name)
+    else:
+        print(f"No such playlist \"{playlist_name}\"")
+
+
+def play_directory(dirpath, shuffle=False):
+    if not os.path.isdir(dirpath):
+        print(f"{dirpath} is not a directory.")
+        return
+
+    paths = [os.path.join(dirpath, item) for item in os.listdir(dirpath)]
+    
+    if shuffle:
+        random.shuffle(paths)
+
+    play_items(paths, Path.parent(dirpath).rsplit("/", 1)[1])
+
+
+def play_items(list, list_name):
+    for item in list:
+        play_file(item, origin=list_name)
+
+def play_file(filepath, origin=None):
+    try:
+        print(f"Now playing \"{filepath.rsplit('/', 1)[1]}\"", f" from \"{origin}\"" if origin else "", "...", sep="")
+        playsound.playsound(filepath)
+    except Exception as e:
+        if type(e) == KeyboardInterrupt:
+            print("KeyboardInterrupt, exiting.")
+            exit(0)
+        
+        print(f"Error: {filepath} was not playable.")
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-l", "--library", action="store_true", help="list the playlists and tracks in your library")
+    parser.add_argument("-p", "--playlist", type=str, help="search for the name as a playlist")
+    parser.add_argument("-d", "--directory", type=str, help="treat the name as a path to a directory (which must contain audio files)")
+    parser.add_argument("-f", "--file", type=str, help="treat the name as a path to an audio file")
+    parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle the tracks in a playlist; has no effect for playing a single track")
+    parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
+
+    use_gui = False
+    try:
+        from tkinter import filedialog, Tk
+        use_gui = True
+        parser.add_argument("-a", "--add", action="store_true", help="add files to your library")
+    except:
+        parser.add_argument("-a", "--add", type=str, help="add the specified file to your library")
+    args = parser.parse_args()
+
+    if args.add:
+        # do stuff
+        if use_gui and not args.nogui:
+            add_music(filedialog=filedialog, tk=Tk)
+        else:
+            add_music()
+    elif args.library:
+        list_music()
+    else:
+        if not os.path.isdir(APP_DIRECTORY):
+            try:
+                os.mkdir(APP_DIRECTORY)
+            except:
+                print("Could not make application directory.")
+                exit(1)
+
+        if args.shuffle:
+            print("shuffle play enabled")
+        
+        if args.playlist:
+            play_playlist(args.playlist, shuffle=args.shuffle)
+        elif args.directory:
+            play_directory(args.directory, shuffle=args.shuffle)
+        elif args.file:
+            play_file(args.file)
+        else:
+            print("No arguments given. Use `acmplayer -h` to see options.")
+
+
+if __name__ == "__main__":
+    main()
