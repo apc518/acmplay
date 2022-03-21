@@ -20,7 +20,7 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
         full_paths = f.read().splitlines()
 
     # items are tuples of format (command, resulting list of absolute paths)
-    history = [full_paths]
+    state_history = [full_paths]
 
 
     ### COMMAND FUNCTIONS ###
@@ -42,8 +42,8 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
         return False
 
     def undo():
-        if len(history) > 1:
-            history.pop(-1)
+        if len(state_history) > 1:
+            state_history.pop(-1)
             return True
         else:
             print("nothing to undo")
@@ -51,12 +51,12 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
 
     def save():
         with open(os.path.join(app_dir, playlist_filename), "w") as f:
-            f.write("\n".join(history[-1]))
+            f.write("\n".join(state_history[-1]))
         print("Succesfully saved.")
         return False
 
     def add(path=None):
-        new_list = history[-1][:]
+        new_list = state_history[-1][:]
         if path:
             fullpath = str(Path.absolute(Path(path))).replace("\\", "/")
             new_list.append(fullpath)
@@ -68,53 +68,57 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
             for name in filenames:
                 new_list.append(name.replace("\\", "/"))
             
-        history.append(new_list)
+        state_history.append(new_list)
 
         return True
     
     def remove(idx):
-        if len(history[-1]) < 1:
+        if len(state_history[-1]) < 1:
             print("This playlist is already empty.")
             return False
-        new_list = history[-1][:]
+        new_list = state_history[-1][:]
         new_list.pop(idx-1)
-        history.append(new_list)
+        state_history.append(new_list)
         return True
 
     def swap(i1, i2):
         idx1 = i1 - 1
         idx2 = i2 - 1
-        new_list = history[-1][:]
+        new_list = state_history[-1][:]
         tmp = new_list[idx2]
         new_list[idx2] = new_list[idx1]
         new_list[idx1] = tmp
-        history.append(new_list)
+        state_history.append(new_list)
         return True
 
     def reorder(*indexes):
-        if sorted(indexes) != [x+1 for x in range(len(history[-1]))]:
+        if sorted(indexes) != [x+1 for x in range(len(state_history[-1]))]:
             print("You must include every track in the new order exactly once.")
             return False
-        new_list = history[-1][:]
+        new_list = state_history[-1][:]
         for i, old_i in enumerate([x-1 for x in indexes]):
-            new_list[i] = history[-1][old_i]
-        history.append(new_list)
+            new_list[i] = state_history[-1][old_i]
+        state_history.append(new_list)
         return True
         
     
     def reverse():
-        new_list = history[-1][::-1]
-        history.append(new_list)
+        new_list = state_history[-1][::-1]
+        state_history.append(new_list)
         return True
     
     def show():
-        for i, item in enumerate(history[-1]):
+        for i, item in enumerate(state_history[-1]):
             print(f"{i+1}.", os.path.split(item)[1])
         print() # extra newline
         return False
 
-    commands = {
+    read_commands = {
         "help": help,
+        "show": show
+    }
+
+    write_commands = {
         "undo": undo,
         "save": save,
         "add": add,
@@ -122,8 +126,9 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
         "swap": swap,
         "reorder": reorder,
         "reverse": reverse,
-        "show": show
     }
+
+    write_command_history = []
 
     def rtfm():
         print("enter \"help\" for usage info")
@@ -133,7 +138,14 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
     while True:
         command = input("acm> ")
         if command.lower() == "exit":
-            break
+            if len(write_command_history) > 0 and write_command_history[-1] != "save":
+                res = input("[!] You have unsaved changes.\nTo exit without saving enter \"exit\" again, or press enter to continue.\n")
+                if res == "exit":
+                    break
+                else:
+                    continue
+            else:
+                break
         
         args = []
 
@@ -158,7 +170,7 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
         elif command.startswith("reorder"):
             try:
                 args = [int(i) for i in command.split(" ")[1:]]
-                if len(args) != len(history[-1]):
+                if len(args) != len(state_history[-1]):
                     print("You must include every track in the new ordering.")
                     raise Exception()
             except:
@@ -167,12 +179,16 @@ def edit_playlist(playlist, app_dir, use_gui=False, filedialog=None, tk=None):
 
         command_name = command.split(" ", 1)[0].lower()
 
-        if command_name in commands:
+        if command_name in write_commands:
             try:
-                if commands[command_name](*args): # execute the command
+                if write_commands[command_name](*args): # execute the command
                     show()
+                
+                write_command_history.append(command_name)
             except:
                 rtfm()
+        elif command_name in read_commands:
+            read_commands[command_name](*args)
         else:
             print("command not recognized")
         
