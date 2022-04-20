@@ -62,7 +62,7 @@ def play_playlist(playlist_name, shuffle=False):
         print(f"Playlist \"{playlist_name}\" not found.")
 
 
-def play_directory(dirpath, shuffle=False):
+def play_directory(dirpath, shuffle=False, alphabetical=False):
     if not os.path.isdir(dirpath):
         print(f"{dirpath} is not a directory.")
         return
@@ -71,6 +71,9 @@ def play_directory(dirpath, shuffle=False):
     
     if shuffle:
         random.shuffle(paths)
+    
+    if alphabetical:
+        paths.sort()
 
     play_items(paths, os.path.basename(str(Path(dirpath).resolve().parent)))
 
@@ -102,6 +105,7 @@ def main():
     parser.add_argument("-r", "--remove", metavar="PLAYLIST", type=str, help="remove a playlist")
     parser.add_argument("-s", "--shuffle", action="store_true", help="shuffle playback if there are multiple tracks")
     parser.add_argument("-n", "--nogui", action="store_true", help="do not try to use a file dialog GUI")
+    parser.add_argument("-a", "--alphabetical", action="store_true", help="play tracks in alphabetical order by filename (only applies to playing a directory, overrides shuffleplay)")
     args = parser.parse_args()
 
     try:
@@ -136,7 +140,7 @@ def main():
             play_playlist(args.play, shuffle=args.shuffle)
         elif args.inpath:
             if os.path.isdir(args.inpath):
-                play_directory(args.inpath, shuffle=args.shuffle)
+                play_directory(args.inpath, shuffle=args.shuffle, alphabetical=args.alphabetical)
             else:
                 play_file(args.inpath)
         else:
