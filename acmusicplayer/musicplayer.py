@@ -6,7 +6,6 @@ import os
 import argparse
 import random
 from pathlib import Path
-from tkinter import filedialog
 
 import playsound
 
@@ -109,7 +108,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        from tkinter import filedialog, Tk
+        from tkinter import filedialog, Tk 
         use_gui = True and not args.nogui
     except:
         use_gui = False
